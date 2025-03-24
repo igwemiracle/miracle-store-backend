@@ -16,7 +16,7 @@ const {
   getProductsBySubCategory
 } = require('../controllers/productController');
 
-// const { getSingleProductReviews } = require('../controllers/reviewController');
+const { getSingleProductReviews } = require('../controllers/reviewController');
 
 router
   .route('/')
@@ -40,6 +40,6 @@ router.get('/parent/:id', getProductsByParentCategory);
 // NEW: Route to get products by subcategory
 router.get('/subcategory/:id', getProductsBySubCategory);
 
-// router.route('/:id/reviews').get(getSingleProductReviews);
+router.route('/:id/reviews').get(getSingleProductReviews);
 
 module.exports = router;

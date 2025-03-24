@@ -27,6 +27,14 @@ const ProductSchema = new mongoose.Schema(
       ref: 'Category', // Links to CategorySchema
       required: true,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    numOfReviews: {
+      type: Number,
+      default: 0,
+    },
     user: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
@@ -36,15 +44,23 @@ const ProductSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// ProductSchema.virtual('reviews', {
-//   ref: 'Review',
-//   localField: '_id',
-//   foreignField: 'product',
-//   justOne: false,
-// });
+/**
+ * This allows you to populate reviews when fetching a product.
+ * It does not store reviews inside the Product collection but links them dynamically.
+ */
+ProductSchema.virtual('reviews', {
+  ref: 'Review',              // References the Review model
+  localField: '_id',          // The field in ProductSchema that matches ReviewSchema
+  foreignField: 'product',    // The field in ReviewSchema that refers to ProductSchema
+  justOne: false,             // false means it's an array (one product can have many reviews)
+});
 
-// ProductSchema.pre('remove', async function (next) {
-//   await this.model('Review').deleteMany({ product: this._id });
-// });
+/**
+ * When a product is deleted, this ensures all reviews related to that product are also deleted.
+ * Prevents orphaned reviews (reviews existing without a product).
+ */
+ProductSchema.pre('remove', async function (next) {
+  await this.model('Review').deleteMany({ product: this._id });
+});
 
 module.exports = mongoose.model('Product', ProductSchema);

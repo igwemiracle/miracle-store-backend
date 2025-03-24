@@ -21,7 +21,7 @@ const register = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ user: tokenUser });
 };
 
-//             Login User
+// Login User
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -43,7 +43,7 @@ const login = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
-//             Logout User
+// Logout User
 const logout = async (req, res) => {
   res.cookie('token', 'logout', {
     httpOnly: true,

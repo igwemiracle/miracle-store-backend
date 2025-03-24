@@ -25,6 +25,13 @@ const authRouter = require('./routes/authRoutes');
 const userRouter = require('./routes/userRoute');
 const productRouter = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const orderRouter = require('./routes/orderRoutes');
+const cartRouter = require('./routes/cartRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const shippingRoutes = require('./routes/shippingRoutes');
+
 
 // middleware
 const notFoundMiddleware = require('./middleware/not-found');
@@ -60,11 +67,15 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/categories', categoryRoutes); // Use category routes
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/cart-items', cartRouter);
+app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/shipping', shippingRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
-
-
 
 const port = process.env.PORT || 5000;
 const start = async () => {

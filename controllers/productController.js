@@ -11,11 +11,14 @@ const createProduct = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ product });
 };
 
+
 const getAllProducts = async (req, res) => {
-  const products = await Product.find({}).populate('category');
+  const products = await Product.find({})
+    .populate('category') // Populates category details
+    .populate({ path: 'reviews', select: 'rating comment user' }); // Populate related reviews
+
   res.status(StatusCodes.OK).json({ products, count: products.length });
 };
-
 
 const getProductsBySubCategory = async (req, res) => {
   try {
@@ -27,7 +30,6 @@ const getProductsBySubCategory = async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: error.message });
   }
 };
-
 
 const getProductsByParentCategory = async (req, res) => {
   try {
@@ -52,7 +54,9 @@ const getSingleProduct = async (req, res) => {
   const { id: productId } = req.params;
 
   // Fetch the product and populate the category field
-  const product = await Product.findOne({ _id: productId }).populate('category');
+  const product = await Product.findOne({ _id: productId })
+    .populate('category')
+    .populate({ path: 'reviews', select: 'rating comment user' }); // Populates related reviews
 
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
@@ -63,7 +67,6 @@ const getSingleProduct = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ product });
 };
-
 
 const updateProduct = async (req, res) => {
   const { id: productId } = req.params;
@@ -93,7 +96,6 @@ const deleteProduct = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ msg: 'Success! Product removed.' });
 };
-
 
 const uploadImage = async (req, res) => {
   if (!req.files) {

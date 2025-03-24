@@ -43,6 +43,7 @@ const updateUser = async (req, res) => {
   attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.OK).json({ user: tokenUser });
 };
+
 const updateUserPassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   if (!oldPassword || !newPassword) {
@@ -60,10 +61,31 @@ const updateUserPassword = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: 'Success! Password Updated.' });
 };
 
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  // Find the user
+  const user = await User.findById(id);
+  if (!user) {
+    throw new CustomError.NotFoundError(`No user found with id: ${id}`);
+  }
+
+  // Delete related data (Cart, Orders, Wishlist)
+  await Cart.deleteOne({ user: id });
+  await Order.deleteMany({ user: id });
+  await Wishlist.deleteOne({ user: id });
+
+  // Delete the user
+  await User.findByIdAndDelete(id);
+
+  res.status(StatusCodes.OK).json({ msg: 'User deleted successfully' });
+};
+
 module.exports = {
   getAllUsers,
   getSingleUser,
   showCurrentUser,
   updateUser,
   updateUserPassword,
+  deleteUser
 };

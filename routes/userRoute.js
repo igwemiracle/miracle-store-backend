@@ -10,6 +10,7 @@ const {
   showCurrentUser,
   updateUser,
   updateUserPassword,
+  deleteUser
 } = require('../controllers/userController');
 
 router
@@ -30,6 +31,6 @@ router
 
 router
   .route('/:id')
-  .get(authenticateUser, getSingleUser);
-
+  .get(authenticateUser, getSingleUser)
+  .delete(authenticateUser, authorizePermissions('admin'), deleteUser);
 module.exports = router;

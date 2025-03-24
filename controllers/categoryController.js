@@ -3,17 +3,6 @@ const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
 
 // 🟢 Create a New Category (Supports Subcategories)
-// const createCategory = async (req, res) => {
-//   const { name, parentCategory } = req.body;
-
-//   const category = await Category.create({
-//     name,
-//     parentCategory: parentCategory || null, 
-//   });
-
-//   res.status(StatusCodes.CREATED).json({ category });
-// };
-
 const createCategory = async (req, res) => {
   const { name, parentCategory } = req.body;
 
@@ -37,7 +26,6 @@ const createCategory = async (req, res) => {
 
   res.status(201).json({ category: newCategory });
 };
-
 
 // 🟢 Get All Categories (With Nested Subcategories)
 const getAllCategories = async (req, res) => {
