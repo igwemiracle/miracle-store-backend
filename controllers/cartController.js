@@ -56,6 +56,49 @@ const getCart = async (req, res) => {
   res.status(200).json({ success: true, cart });
 };
 
+const updateCart = async (req, res) => {
+  const { items } = req.body; // Expecting an array of items [{ productId, quantity }, ...]
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new CustomError.BadRequestError('Please provide valid products and quantities');
+  }
+
+  let cart = await Cart.findOne({ user: req.user.userId }).populate('items.product');
+
+  if (!cart) {
+    throw new CustomError.NotFoundError('Cart not found');
+  }
+
+  for (const item of items) {
+    const { productId, quantity } = item;
+
+    if (!productId || quantity < 1) {
+      throw new CustomError.BadRequestError('Invalid product or quantity');
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new CustomError.NotFoundError(`Product with ID ${productId} not found`);
+    }
+
+    const existingItem = cart.items.find((i) => i.product._id.toString() === productId);
+    if (existingItem) {
+      existingItem.quantity = quantity; // Update the quantity
+    } else {
+      cart.items.push({ product: productId, quantity }); // Add if not exists
+    }
+  }
+
+  // Recalculate total price
+  cart.totalPrice = cart.items.reduce((total, item) => total + item.quantity * item.product.price, 0);
+
+  await cart.save();
+  res.status(200).json({ success: true, cart });
+};
+
+module.exports = { updateCart };
+
+
 const removeFromCart = async (req, res) => {
   const { productId } = req.params;
   let cart = await Cart.findOne({ user: req.user.userId }).populate('items.product');
@@ -79,5 +122,6 @@ const removeFromCart = async (req, res) => {
 module.exports = {
   addToCart,
   getCart,
-  removeFromCart
+  removeFromCart,
+  updateCart
 };

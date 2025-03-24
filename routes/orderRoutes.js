@@ -11,6 +11,7 @@ const {
   getCurrentUserOrders,
   createOrder,
   updateOrder,
+  deleteAllOrders
 } = require('../controllers/orderController');
 
 router
@@ -24,5 +25,7 @@ router
   .route('/:id')
   .get(authenticateUser, getSingleOrder)
   .patch(authenticateUser, updateOrder);
+
+router.delete('/', authenticateUser, authorizePermissions('admin'), deleteAllOrders);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addToCart, getCart, removeFromCart } = require('../controllers/cartController');
+const { addToCart, getCart, updateCart, removeFromCart } = require('../controllers/cartController');
 const {
   authenticateUser,
 } = require('../middleware/authentication');
@@ -8,5 +8,7 @@ const {
 router.post('/', authenticateUser, addToCart);
 router.get('/', authenticateUser, getCart);
 router.delete('/:productId', authenticateUser, removeFromCart);
+router.put('/', authenticateUser, updateCart);
+
 
 module.exports = router;

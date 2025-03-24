@@ -40,7 +40,7 @@ const addShippingDetails = async (req, res) => {
   Thank you for shopping with us! 🛍️
 
   Best Regards,  
-  Your E-commerce Team`;
+  Team Greateness`;
 
   // Check if the user has an email before sending
   if (order.user.email) {

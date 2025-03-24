@@ -7,6 +7,12 @@ const { checkPermissions } = require('../utils');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const createOrder = async (req, res) => {
+  const { orderItems, tax, shippingFee } = req.body;
+
+  if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+    throw new CustomError.BadRequestError('Please provide valid order items.');
+  }
+
   // Fetch user's cart
   const cart = await Cart.findOne({ user: req.user.userId }).populate('items.product');
 
@@ -14,25 +20,33 @@ const createOrder = async (req, res) => {
     throw new CustomError.BadRequestError('Your cart is empty');
   }
 
-  // Extract cart items and calculate totals
-  const orderItems = cart.items.map((item) => ({
+  // Filter selected products from cart
+  const selectedItems = cart.items.filter((item) =>
+    orderItems.some((order) => order.product === item.product._id.toString())
+  );
+
+  if (selectedItems.length === 0) {
+    throw new CustomError.BadRequestError('Selected products are not in the cart.');
+  }
+
+  // Format order items
+  const formattedOrderItems = selectedItems.map((item) => ({
     product: item.product._id,
     name: item.product.name,
     price: item.product.price,
     quantity: item.quantity,
-    image: item.product.image, // Ensure the image is included
-    amount: item.product.price * item.quantity, // Ensure the amount is included
+    image: item.product.image,
+    amount: item.product.price * item.quantity,
   }));
 
-  const subtotal = cart.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const tax = 0.1 * subtotal; // Example tax (10%)
-  const shippingFee = 5; // Example shipping fee
-  const total = subtotal + tax + shippingFee;
-
-  // Convert total to cents and ensure it's an integer
+  // Calculate totals
+  const subtotal = selectedItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const taxAmount = tax ?? 0.1 * subtotal; // Default 10% tax
+  const shippingAmount = shippingFee ?? 5; // Default $5 shipping fee
+  const total = subtotal + taxAmount + shippingAmount;
   const totalInCents = Math.round(total * 100);
 
-  // Create a Stripe PaymentIntent
+  // Create Stripe PaymentIntent
   const paymentIntent = await stripe.paymentIntents.create({
     amount: totalInCents,
     currency: 'usd',
@@ -42,22 +56,24 @@ const createOrder = async (req, res) => {
   // Create the order
   const order = await Order.create({
     user: req.user.userId,
-    orderItems,
+    orderItems: formattedOrderItems,
     subtotal,
-    tax,
-    shippingFee,
+    tax: taxAmount,
+    shippingFee: shippingAmount,
     total,
     clientSecret: paymentIntent.client_secret,
     paymentIntentId: paymentIntent.id,
   });
 
-  // Clear the cart after order is placed
-  await Cart.findOneAndDelete({ user: req.user.userId });
+  // Remove only ordered items from cart
+  cart.items = cart.items.filter(
+    (item) => !orderItems.some((order) => order.product === item.product._id.toString())
+  );
+
+  await cart.save();
 
   res.status(StatusCodes.CREATED).json({ order, clientSecret: paymentIntent.client_secret });
 };
-
-
 
 const getAllOrders = async (req, res) => {
   const orders = await Order.find({});
@@ -96,10 +112,23 @@ const updateOrder = async (req, res) => {
   res.status(StatusCodes.OK).json({ order });
 };
 
+const deleteAllOrders = async (req, res) => {
+  try {
+    // Delete all orders from the database
+    await Order.deleteMany({});
+
+    res.status(200).json({ message: 'All orders have been deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete orders', error: error.message });
+  }
+};
+
+
 module.exports = {
   getAllOrders,
   getSingleOrder,
   getCurrentUserOrders,
   createOrder,
   updateOrder,
+  deleteAllOrders
 };
