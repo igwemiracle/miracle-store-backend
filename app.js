@@ -58,25 +58,10 @@ app.use(morgan('combined'));
 
 
 app.use(helmet());
-
-const allowedOrigins = [
-  'http://localhost:5173',              // local dev
-  'mira-store-frontend-y9kd.vercel.app'    // Vercel frontend
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['mira-store-frontend-y9kd.vercel.app'],
   credentials: true,
 }));
-
-
-
 app.use(xss());
 app.use(mongoSanitize());
 
