@@ -4,7 +4,7 @@ const cron = require('node-cron');
 // express
 require('express-async-errors');
 const express = require('express');
-const cors = require('cors'); // Enables Cross-Origin Resource Sharing (CORS) for frontend-backend communication.
+const cors = require('cors');
 const app = express();
 
 
