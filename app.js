@@ -59,7 +59,7 @@ app.use(morgan('combined'));
 
 app.use(helmet());
 app.use(cors({
-  origin: ['mira-store-frontend-y9kd.vercel.app'],
+  origin: ['https://mira-store-3b90t6xas-igwe-miracles-projects.vercel.app'],
   credentials: true,
 }));
 app.use(xss());
