@@ -14,12 +14,12 @@ const {
   promoteToAdmin
 } = require('../controllers/userController');
 
-const { getOrderStatistics } = require('../A/getOrderStats');
+// const { getOrderStatistics } = require('../A/getOrderStats');
 
 
-router
-  .route('/order-statistics')
-  .get(authenticateUser, authorizePermissions('admin'), getOrderStatistics);
+// router
+//   .route('/order-statistics')
+//   .get(authenticateUser, authorizePermissions('admin'), getOrderStatistics);
 
 
 router
