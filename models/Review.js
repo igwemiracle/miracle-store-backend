@@ -31,6 +31,8 @@ const ReviewSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// This index ensures that a user can only leave one review per product.
 ReviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
 ReviewSchema.statics.calculateAverageRating = async function (productId) {

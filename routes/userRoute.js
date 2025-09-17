@@ -10,8 +10,17 @@ const {
   showCurrentUser,
   updateUser,
   updateUserPassword,
-  deleteUser
+  deleteUser,
+  promoteToAdmin
 } = require('../controllers/userController');
+
+const { getOrderStatistics } = require('../A/getOrderStats');
+
+
+router
+  .route('/order-statistics')
+  .get(authenticateUser, authorizePermissions('admin'), getOrderStatistics);
+
 
 router
   .route('/')
@@ -33,4 +42,9 @@ router
   .route('/:id')
   .get(authenticateUser, getSingleUser)
   .delete(authenticateUser, authorizePermissions('admin'), deleteUser);
+
+router
+  .patch('/:id/promote', authenticateUser, authorizePermissions('admin'), promoteToAdmin);
+
+
 module.exports = router;

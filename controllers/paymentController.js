@@ -1,38 +1,42 @@
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const CustomError = require('../errors');
 const { StatusCodes } = require('http-status-codes');
+const CustomError = require('../errors');
+const { stripe } = require('../utils/stripe'); // or just `require('../utils/stripe')`
 
-// ➤ Process payment and save details
 const createPayment = async (req, res) => {
-  const { orderId, paymentMethodId } = req.body;
+  const { orderId } = req.body;
 
-  // Check if order exists
+  // Step 1: Validate Order
   const order = await Order.findById(orderId);
   if (!order) {
-    throw new CustomError.NotFoundError('Order not found');
+    throw new CustomError.NotFoundError(`No order found with ID: ${orderId}`);
   }
 
-  // Create Stripe PaymentIntent
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(order.total * 100), // Convert to cents
-    currency: 'usd',
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
+  // Step 2: Make sure it’s not already paid
+  const existingPayment = await Payment.findOne({ order: orderId });
+  if (existingPayment && existingPayment.status === 'succeeded') {
+    throw new CustomError.BadRequestError('This order has already been paid for.');
+  }
 
-  // Ensure correct user assignment
+  // Step 3: Confirm payment intent status from Stripe
+  const paymentIntent = await stripe.paymentIntents.retrieve(order.paymentIntentId);
+
+  if (paymentIntent.status !== 'succeeded') {
+    throw new CustomError.BadRequestError('Payment not completed yet.');
+  }
+
+  // Step 4: Save Payment
   const payment = await Payment.create({
-    user: order.user, // Use order's user, not req.user.userId
+    user: req.user.userId,
     order: orderId,
     paymentIntentId: paymentIntent.id,
-    amount: order.total,
+    amount: paymentIntent.amount / 100, // convert cents to dollars
+    currency: paymentIntent.currency,
     status: paymentIntent.status,
   });
 
-  res.status(StatusCodes.CREATED).json({ message: 'Payment successful', payment });
+  res.status(StatusCodes.CREATED).json({ message: 'Payment recorded successfully', payment });
 };
 
 

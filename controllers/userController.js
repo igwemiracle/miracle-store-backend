@@ -7,8 +7,28 @@ const {
   checkPermissions,
 } = require('../utils');
 
+
+const promoteToAdmin = async (req, res) => {
+  const { id: userIdToPromote } = req.params;
+
+  const user = await User.findById(userIdToPromote);
+  if (!user) {
+    throw new CustomError.NotFoundError(`No user with id: ${userIdToPromote}`);
+  }
+
+  if (user.role === 'admin') {
+    throw new CustomError.BadRequestError('User is already an admin');
+  }
+
+  user.role = 'admin';
+  await user.save();
+
+  res.status(200).json({ message: 'User promoted to admin', user });
+}
+
+
+
 const getAllUsers = async (req, res) => {
-  console.log(req.user);
   const users = await User.find({ role: 'user' }).select('-password');
   res.status(StatusCodes.OK).json({ users });
 };
@@ -87,5 +107,6 @@ module.exports = {
   showCurrentUser,
   updateUser,
   updateUserPassword,
-  deleteUser
+  deleteUser,
+  promoteToAdmin
 };

@@ -1,4 +1,5 @@
 const Shipping = require('../models/Shipping');
+const Payment = require('../models/Payment')
 const Order = require('../models/Order');
 const sendEmail = require('../utils/emailService');
 const { StatusCodes } = require('http-status-codes');
@@ -6,6 +7,13 @@ const { StatusCodes } = require('http-status-codes');
 // ➤ Save shipping details and send email notification
 const addShippingDetails = async (req, res) => {
   const { orderId, address, trackingNumber, carrier } = req.body;
+
+  // Verify that the payment’s status is "succeeded". Else throw an Error
+  const payment = await Payment.findOne({ order: orderId });
+  if (!payment || payment.status !== 'succeeded') {
+    throw new Error('Cannot ship order: Payment not completed.');
+  }
+
 
   // Check if order exists and populate user field
   const order = await Order.findById(orderId).populate('user');

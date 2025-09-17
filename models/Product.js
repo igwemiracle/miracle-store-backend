@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const generateSKU = require('../utils/generateSKU');
+
 
 const ProductSchema = new mongoose.Schema(
   {
@@ -6,7 +8,7 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       trim: true,
       required: [true, 'Please provide product name'],
-      maxlength: [100, 'Name can not be more than 100 characters'],
+      maxlength: [300, 'Name can not be more than 300 characters'],
     },
     price: {
       type: Number,
@@ -18,14 +20,20 @@ const ProductSchema = new mongoose.Schema(
       required: [true, 'Please provide product description'],
       maxlength: [1000, 'Description can not be more than 1000 characters'],
     },
-    image: {
-      type: String,
-      default: '/uploads/example.jpeg',
-    },
+    images: [
+      {
+        url: String,
+        public_id: String,
+      }
+    ],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category', // Links to CategorySchema
       required: true,
+    },
+    isTrending: {
+      type: Boolean,
+      default: false,
     },
     averageRating: {
       type: Number,
@@ -35,6 +43,7 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    sku: { type: String, unique: true, sparse: true },
     user: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
@@ -43,6 +52,13 @@ const ProductSchema = new mongoose.Schema(
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+// Custom validator
+function arrayLimit(val) {
+  return val.length > 0;
+}
+
+
 
 /**
  * This allows you to populate reviews when fetching a product.
@@ -62,5 +78,25 @@ ProductSchema.virtual('reviews', {
 ProductSchema.pre('remove', async function (next) {
   await this.model('Review').deleteMany({ product: this._id });
 });
+
+// ✅ Pre-save hook to auto-generate SKU if missing
+ProductSchema.pre('save', async function (next) {
+  if (!this.sku || this.sku.trim() === '') {
+    let newSKU;
+    let isUnique = false;
+
+    while (!isUnique) {
+      newSKU = generateSKU();
+      const existing = await mongoose.models.Product.findOne({ sku: newSKU });
+      if (!existing) {
+        isUnique = true;
+      }
+    }
+
+    this.sku = newSKU;
+  }
+  next();
+});
+
 
 module.exports = mongoose.model('Product', ProductSchema);

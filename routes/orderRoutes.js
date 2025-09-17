@@ -11,7 +11,9 @@ const {
   getCurrentUserOrders,
   createOrder,
   updateOrder,
-  deleteAllOrders
+  deleteAllOrders,
+  createPaymentIntentOnly,
+  createOrderAfterPayment,
 } = require('../controllers/orderController');
 
 router
@@ -27,5 +29,9 @@ router
   .patch(authenticateUser, updateOrder);
 
 router.delete('/', authenticateUser, authorizePermissions('admin'), deleteAllOrders);
+// NEW
+router.route('/create-payment-intent').post(authenticateUser, createPaymentIntentOnly);
+router.route('/create-order-after-payment').post(authenticateUser, createOrderAfterPayment);
+
 
 module.exports = router;
