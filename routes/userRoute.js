@@ -14,14 +14,6 @@ const {
   promoteToAdmin
 } = require('../controllers/userController');
 
-// const { getOrderStatistics } = require('../A/getOrderStats');
-
-
-// router
-//   .route('/order-statistics')
-//   .get(authenticateUser, authorizePermissions('admin'), getOrderStatistics);
-
-
 router
   .route('/')
   .get(authenticateUser, authorizePermissions('admin'), getAllUsers);
