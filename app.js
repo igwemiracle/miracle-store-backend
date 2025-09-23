@@ -60,22 +60,22 @@ app.use(morgan('combined'));
 app.use(helmet());
 
 const allowedOrigins = [
-  'https://mira-store-five.vercel.app', // your actual deployed frontend
-  'mira-store-git-main-igwe-miracles-projects.vercel.app',
-  'mira-store-2dp4z823k-igwe-miracles-projects.vercel.app',
-  'http://localhost:5173',              // dev environment
+  'https://mira-store-five.vercel.app',
+  'https://mira-store-git-main-igwe-miracles-projects.vercel.app',
+  'https://mira-store-2dp4z823k-igwe-miracles-projects.vercel.app',
+  'http://localhost:5173',
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log(`CORS blocked: ${origin}`);
+      callback(null, false);
     }
   },
+
   credentials: true,
 }));
 
