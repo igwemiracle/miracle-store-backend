@@ -43,7 +43,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
-    max: isDev ? 1000 : 60,
+    max: isDev ? 1000 : 500,
     standardHeaders: true,
     legacyHeaders: false,
   })
@@ -61,6 +61,8 @@ app.use(helmet());
 
 const allowedOrigins = [
   'https://mira-store-five.vercel.app', // your actual deployed frontend
+  'mira-store-git-main-igwe-miracles-projects.vercel.app',
+  'mira-store-2dp4z823k-igwe-miracles-projects.vercel.app',
   'http://localhost:5173',              // dev environment
 ];
 
